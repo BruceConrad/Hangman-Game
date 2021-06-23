@@ -5,7 +5,7 @@ const guessWords = ["RACECAR","FIGHT","NERO","PALINDROME"];
 const letterGuessArray = [];
 const correctLetterArray = [];
 
-const canvas = document.getElementById('canvas');
+const canvas = document.getElementById('hangmanCanvas');
 const ctx = canvas.getContext('2d');
 
 
@@ -18,24 +18,25 @@ const letterRows = 6;
 const letterColumns = 5;
 
 var wrongGuessCount = 0;
+var filledInLetters = 0;
 
 const happyWord = guessWords[Math.floor(Math.random()*guessWords.length)];
 
 ctx.font = "20px sans-serif";
 
-function DrawInitialCanvas()
+function Init()
 {
-    const baseXStart = 0;
-    const baseXEnd = 500;
-    const baseYStart = 0;
-    const baseYEnd = 500;
-    
+    var xStart = 0;
+    var xEnd = 500;
+    var yStart = 0;
+    var yEnd = 500;
+
     ctx.beginPath();
-    ctx.moveTo(halfwayCanvas, baseYStart);
+    ctx.moveTo(halfwayCanvas, yStart);
     ctx.lineTo(halfwayCanvas, canvasHeight/2);
     
-    ctx.moveTo(baseXStart, canvasHeight/2);
-    ctx.lineTo(baseXEnd, canvasHeight/2);
+    ctx.moveTo(xStart, canvasHeight/2);
+    ctx.lineTo(xEnd, canvasHeight/2);
     
     ctx.moveTo(100,100);
     ctx.lineTo(100,225);
@@ -49,37 +50,37 @@ function DrawInitialCanvas()
     ctx.moveTo(150,100);
     ctx.lineTo(150,125);
     ctx.stroke();
-    
-    
 }
 
 function DisplayLetters()
 {
-    let xColumnSpot = (halfwayCanvas/ letterColumns)/2;
-    let yColumnSpot = Math.floor(halfwayCanvas/ letterRows)/2;
-    let letterCounter = 0;
-    
+    var xColumnSpot = (halfwayCanvas/letterColumns)/2;
+    var yColumnSpot = Math.floor(halfwayCanvas/letterRows)/2;
+    var letterCounter = 0;
+
     ctx.fillStyle = "blue";
-    
+
     for(let rowSpot = 0; rowSpot < letterRows; rowSpot++)
     {
         for(let columnSpot = 0; columnSpot < letterColumns; columnSpot++)
         {
-            let textWidth = ctx.measureText(letterArray[letterCounter]);
-            
+            let textWidth = ctx.measureText(letterArray[letterCounter])
             if(letterCounter < letterArray.length)
             {
-                if(letterArray[letterCounter] != "Z")
+                if(letterArray[letterCounter] != 'Z')
                 {
-                    ctx.fillText(letterArray[letterCounter], (halfwayCanvas + xColumnSpot + (columnSpot*xColumnSpot)*2) - textWidth.width/2 ,  (yColumnSpot*1.3 + (rowSpot*yColumnSpot*2)));
+                    ctx.fillText(letterArray[letterCounter],
+                        (halfwayCanvas + xColumnSpot + (columnSpot*xColumnSpot)*2) - textWidth.width/2 , 
+                        (yColumnSpot*1.3 + (rowSpot*yColumnSpot*2)));
                 }
-                
                 else
                 {
-                    ctx.fillText(letterArray[letterCounter], (halfwayCanvas + xColumnSpot*5 + (columnSpot*xColumnSpot)*2) - textWidth.width/2 , yColumnSpot*1.3 + (rowSpot*yColumnSpot*2));
+                    ctx.fillText(letterArray[letterCounter],
+                        (halfwayCanvas + xColumnSpot*5 + (columnSpot*xColumnSpot)*2) - textWidth.width/2 ,
+                        yColumnSpot*1.3 + (rowSpot*yColumnSpot*2));
                 }
             }
-            
+
             letterCounter++;
         }
     }
@@ -91,68 +92,73 @@ function DrawBlanks()
     let yColumnSpot = canvasHeight - Math.floor((canvasHeight/4));
     let widestBlankSpace = CalculateBlankWidth();
     let xColumnSpot = Math.floor(canvasWidth/amountOfBlanks)*.5;
-    
-    
+
     for(let i = 0; i < amountOfBlanks; i++)
     {
         ctx.beginPath();
         ctx.moveTo((xColumnSpot - widestBlankSpace), yColumnSpot);
         ctx.lineTo((xColumnSpot + widestBlankSpace), yColumnSpot);
         ctx.stroke();
-        
-        xColumnSpot = xColumnSpot + (Math.floor(canvasWidth/amountOfBlanks));
+
+        xColumnSpot = xColumnSpot + Math.floor(canvasWidth/amountOfBlanks);
     }
-    
 }
 
 function DoGuess()
 {
-    var letter = document.getElementById("Guess").value;
+    var letter = document.getElementById('Guess').value;
     var message;
 
-    if (letter.toUpperCase() >= "A" && letter.toUpperCase() <= "Z") {
-        message = "You guessed the letter '" + letter + "'";
-        if (happyWord.includes(letter.toUpperCase())) {
-	   message += "\n Good job! You guessed a correct letter!";
-	} else {
-	   message += "\n Nah fam, this letter is not in the word!";
-       wrongGuessCount++;
-	}
-    } else {
-        message = "Please enter a letter (a-z) not '" + letter + "'";
+    if(letter.toUpperCase() >= 'A' && letter.toUpperCase() <= 'Z')
+    {
+        message += "You guessed the letter " + letter;
+        if(happyWord.includes(letter.toUpperCase()))
+        {
+            message += "\n Good job! You guessed a correct letter!";
+        }
+        else
+        {
+            message += "\n You did not guess a correct letter, try again!";
+        }
+        letterGuessArray.push(letter.toUpperCase());
     }
+    else
+    {
+        message = "Please enter a letter (a-z) not " + letter;
+    }
+
     alert(message);
-    document.getElementById("Guess").value = "";
-    
-    letterGuessArray.push(letter.toUpperCase());
-    
-    RedrawBoard(letter,wrongGuessCount);
+
+    RedrawBoard(letter.toUpperCase(), wrongGuessCount);
+    document.getElementById('Guess').value = "";
 }
 
-function RedrawBoard(letter,wrongGuessCount)
+function RedrawBoard(letter, wrongGuessCount)
 {
-    ctx.clearRect(0,0,canvasWidth, canvasHeight);
-    DrawInitialCanvas();
+    ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+    Init();
     DisplayUpdatedLetters(letter);
     DrawBlanksAndCorrectLettersGuessed(letter);
     DrawHangMan(wrongGuessCount);
+    CheckWinCondition();
 }
 
 function CalculateBlankWidth()
 {
-    let maxWidth = 0;
-    let letterWidth = 0;
-    
-    for(let letterCount = 0; letterCount < happyWord.length; letterCount++)
-    {
-        letterWidth = ctx.measureText(happyWord.charAt(letterCount)).width;
-        
-        if(letterWidth > maxWidth)
+        var maxWidth = 0;
+        var letterWidth = 0;
+
+        for(let letterCount = 0; letterCount < happyWord.length; letterCount++)
         {
-            maxWidth = letterWidth;
+            letterWidth = ctx.measureText(happyWord.charAt(letterCount)).width;
+
+            if(letterWidth > maxWidth)
+            {
+                maxWidth = letterWidth;
+            }
         }
-    }
-    return(Math.floor(maxWidth * 1.3));
+
+        return Math.floor(maxWidth * 1.3);
 }
 
 function DrawHangMan(wrongGuessCount)
@@ -200,107 +206,8 @@ function DrawHangMan(wrongGuessCount)
         DrawHangManRightArm();
         DrawHangManLeftLeg();
         DrawHangManRightLeg();
-        alert("That ain't it chief, try again!");
+        alert("Sorry, you did not win...");
     }
-}
-
-function FillCorrectLetterArray()
-{
-    var currentLetter;
-    
-    for(let i = 0; i < happyWord.length; i++)
-    {
-        currentLetter = happyWord.charAt(i);
-        if(currentLetter != correctLetterArray[i])
-        {
-            correctLetterArray.push(currentLetter);
-        }
-    }
-}
-function DisplayUpdatedLetters(letter)
-{
-    let xColumnSpot = (halfwayCanvas/ letterColumns)/2;
-    let yColumnSpot = Math.floor(halfwayCanvas/ letterRows)/2;
-    let letterCounter = 0;
-    
-    ctx.fillStyle = "blue";
-    
-    for(let rowSpot = 0; rowSpot < letterRows; rowSpot++)
-    {
-        for(let columnSpot = 0; columnSpot < letterColumns; columnSpot++)
-        {
-            let textWidth = ctx.measureText(letterArray[letterCounter]);
-            
-            if(letterCounter < letterArray.length)
-            {
-                if(letterArray[letterCounter] != "Z")
-                {
-                    if(letterGuessArray.includes(letter.toUpperCase()) && correctLetterArray.includes(letterArray[letterCounter]) && letterGuessArray.includes(letterArray[letterCounter]))
-                    {
-                        ctx.fillStyle = "green";
-                    }
-                    
-                    else if(letterGuessArray.includes(letter.toUpperCase()) && letterGuessArray.includes(letterArray[letterCounter]))
-                    {
-                        ctx.fillStyle = "red";
-                    }
-                    
-                    else
-                    {
-                        ctx.fillStyle = "blue";
-                    }
-                    
-                    ctx.fillText(letterArray[letterCounter], (halfwayCanvas + xColumnSpot + (columnSpot*xColumnSpot)*2) - textWidth.width/2 ,  (yColumnSpot*1.3 + (rowSpot*yColumnSpot*2)));
-                }
-                
-                else
-                {
-                     if(letterGuessArray.includes(letter.toUpperCase()) && correctLetterArray.includes(letterArray[letterCounter]) && letterGuessArray.includes(letterArray[letterCounter]))
-                    {
-                        ctx.fillStyle = "green";
-                    }
-                    
-                    else if(letterGuessArray.includes(letter.toUpperCase()) && letterGuessArray.includes(letterArray[letterCounter]))
-                    {
-                        ctx.fillStyle = "red";
-                    }
-                    
-                    else
-                    {
-                        ctx.fillStyle = "blue";
-                    }
-                    
-                    ctx.fillText(letterArray[letterCounter], (halfwayCanvas + xColumnSpot*5 + (columnSpot*xColumnSpot)*2) - textWidth.width/2 , yColumnSpot*1.3 + (rowSpot*yColumnSpot*2));
-                }
-            }
-            
-            letterCounter++;
-        }
-    }
-    
-}
-
-function DrawBlanksAndCorrectLettersGuessed(letter)
-{
-    DrawBlanks();
-    
-    ctx.fillStyle = "black";
-    
-    let amountOfLetters = happyWord.length;
-	let amountOfGuesses = letterGuessArray.length;
-    let xColumnSpot = Math.floor(canvasWidth/amountOfLetters)*.5;
-    let yColumnSpot = canvasHeight - Math.floor((canvasHeight/4));
-    
-	for(let i = 0; i < amountOfGuesses; i++)
-	{
-		for(let j = 0; j < amountOfLetters; j++)
-		{
-        
-			CheckPositionAndLetter(i, letterGuessArray[i], xColumnSpot, yColumnSpot);
-        
-			xColumnSpot = Math.floor(canvasWidth/amountOfLetters)*.5;
-		}
-	}
 }
 
 function DrawHangManHead()
@@ -349,25 +256,147 @@ function DrawHangManRightLeg()
     ctx.stroke();
 }
 
-function CheckPositionAndLetter(position, letter, xPosition, yPosition)
+function FillCorrectLetterArray()
 {
-    let amountOfLetters = happyWord.length;
-    let amountOfGuesses = letterGuessArray.length;
-    
-    for(let i = 0; i < amountOfGuesses; i++)
+    var currentLetter;
+
+    for(let i = 0; i < happyWord.length; i++)
     {
-        for(let j = 0; j < amountOfLetters; j++)
+        currentLetter = happyWord.charAt(i);
+        if(currentLetter != correctLetterArray[i])
         {
-            if(letter == correctLetterArray[j])
-            {
-                ctx.fillText(letter, xPosition, yPosition);
-            }
-            xPosition += Math.floor(canvasWidth/amountOfLetters);
+            correctLetterArray.push(currentLetter);
         }
     }
 }
 
-DrawInitialCanvas();
+function DisplayUpdatedLetters(letter)
+{
+    let xColumnSpot = (halfwayCanvas / letterColumns) / 2;
+    let yColumnSpot = Math.floor(halfwayCanvas / letterRows) / 2;
+    let letterCounter = 0;
+
+    ctx.fillStyle = "blue";
+
+    for(let rowSpot = 0; rowSpot < letterRows; rowSpot++)
+    {
+        for(let columnSpot = 0; columnSpot < letterColumns; columnSpot++)
+        {
+            let textWidth = ctx.measureText(letterArray[letterCounter]);
+            
+            if(letterCounter < letterArray.length)
+            {
+                if(letterArray[letterCounter] != 'Z')
+                {
+                    if(letterGuessArray.includes(letter.toUpperCase()) &&
+                    correctLetterArray.includes(letterArray[letterCounter]) &&
+                    letterGuessArray.includes(letterArray[letterCounter]))
+                    {
+                        ctx.fillStyle = "green";
+                    }
+                    
+                    else if(letterGuessArray.includes(letter.toUpperCase()) &&
+                    letterGuessArray.includes(letterArray[letterCounter]))
+                    {
+                        ctx.fillStyle = "red";
+                    }
+                    
+                    else
+                    {
+                        ctx.fillStyle = "blue";
+                    }
+                    
+                    ctx.fillText(letterArray[letterCounter],
+                        (halfwayCanvas + xColumnSpot + (columnSpot*xColumnSpot)*2) - textWidth.width/2 , 
+                        (yColumnSpot*1.3 + (rowSpot*yColumnSpot*2)));
+                }
+                else
+                {
+                    if(letterGuessArray.includes(letter.toUpperCase()) &&
+                    correctLetterArray.includes(letterArray[letterCounter]) &&
+                    letterGuessArray.includes(letterArray[letterCounter]))
+                    {
+                        ctx.fillStyle = "green";
+                    }
+                    
+                    else if(letterGuessArray.includes(letter.toUpperCase()) &&
+                    letterGuessArray.includes(letterArray[letterCounter]))
+                    {
+                        ctx.fillStyle = "red";
+                    }
+                    
+                    else
+                    {
+                        ctx.fillStyle = "blue";
+                    }
+                    
+                    ctx.fillText(letterArray[letterCounter],
+                        (halfwayCanvas + xColumnSpot*5 + (columnSpot*xColumnSpot)*2) - textWidth.width/2 ,
+                        yColumnSpot*1.3 + (rowSpot*yColumnSpot*2));
+                }
+            }
+            letterCounter++;
+        }
+    }
+}
+
+function DrawBlanksAndCorrectLettersGuessed(letter)
+{
+    DrawBlanks();
+
+    ctx.fillStyle = "black";
+
+    let amountOfLetters = happyWord.length;
+    let amountOfGuesses = letterGuessArray.length;
+    let xColumnSpot = Math.floor(canvasWidth / amountOfLetters) * .5;
+    let yColumnSpot = canvasHeight - Math.floor(canvasHeight / 4);
+
+    for(let i = 0; i < amountOfGuesses; i++)
+    {
+            CheckPositionAndLetter(letterGuessArray[i], xColumnSpot, yColumnSpot);
+    }
+    if(letterGuessArray.includes(letter))
+    {
+        for(let m = 0; m < letterGuessArray.length; m++)
+        {
+            if(letterGuessArray[m] == letter.toUpperCase())
+            {
+                filledInLetters++;
+                console.log(filledInLetters);
+            }
+        }
+    }
+}
+
+function CheckPositionAndLetter(letter, xPosition, yPosition)
+{
+    let amountOfLetters = happyWord.length;
+    let amountOfGuesses = letterGuessArray.length;
+    
+
+    for(let j = 0; j < amountOfLetters; j++)
+    {
+        if(letter == correctLetterArray[j])
+        {
+            ctx.fillText(letter, xPosition, yPosition);
+        }
+        xPosition += Math.floor(canvasWidth/amountOfLetters);
+    }
+}
+
+function CheckWinCondition()
+{
+    if(filledInLetters == happyWord.length)
+    {
+        winningScore++;
+        let name = document.getElementById('name').value;
+        alert("Congratulations " + name + "! You Win!" +
+        "\nWins: " + winningScore +
+        "\nLosses: " + losingScore);
+    }
+}
+
+Init();
 DisplayLetters();
 DrawBlanks();
 FillCorrectLetterArray();

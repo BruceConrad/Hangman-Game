@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset = "utf-8">
+    </head>
+
+    <body>
+        <canvas id="hangmanCanvas" width=500 height=500 style="border: 4px solid"></canvas>
+        <br>
+        <b>Guess a letter (a-z) :</b>
+        <input
+            type="text"
+            name="Guess"
+            maxLength = "1"
+            size = "1"
+            id="Guess">
+        <button type="button" id="Redraw" onclick="DoGuess()">GUESS!</button>
+
+        <form id="infoForm" method = POST onsubmit = "Process()" action = "hangman.html">
+            <label>Name</label>
+            <input type = "text" id = "name">
+        </form>
+
+        <script src = "drawHangman.js"></script>
+        <script src = "process.js"></script>
+    </body>
+
+</html>
