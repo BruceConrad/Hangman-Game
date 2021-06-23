@@ -122,7 +122,7 @@ function DoGuess()
         message = "Please enter a letter (a-z) not '" + letter + "'";
     }
     alert(message);
-    document.getElementById("Guess").value = " ";
+    document.getElementById("Guess").value = "";
     
     letterGuessArray.push(letter.toUpperCase());
     
