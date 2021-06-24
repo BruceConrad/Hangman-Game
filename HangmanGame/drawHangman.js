@@ -389,10 +389,7 @@ function CheckWinCondition()
     if(filledInLetters == happyWord.length)
     {
         winningScore++;
-        let name = document.getElementById('name').value;
-        alert("Congratulations " + name + "! You Win!" +
-        "\nWins: " + winningScore +
-        "\nLosses: " + losingScore);
+        Process();
     }
 }
 
