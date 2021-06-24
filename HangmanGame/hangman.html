@@ -15,11 +15,14 @@
             size = "1"
             id="Guess">
         <button type="button" id="Redraw" onclick="DoGuess()">GUESS!</button>
+        <br>
 
         <form id="infoForm" method = POST onsubmit = "Process()" action = "hangman.html">
             <label>Name</label>
             <input type = "text" id = "name">
         </form>
+        <br>
+        <button type = "button" id = "restart" onclick = "Reset()">New Game</button>
 
         <script src = "drawHangman.js"></script>
         <script src = "process.js"></script>

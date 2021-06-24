@@ -2,8 +2,9 @@
 
 const letterArray = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
 const guessWords = ["RACECAR","FIGHT","NERO","PALINDROME"];
-const letterGuessArray = [];
-const correctLetterArray = [];
+var letterGuessArray = [];
+var correctLetterArray = [];
+var blankFilledArray = [];
 
 const canvas = document.getElementById('hangmanCanvas');
 const ctx = canvas.getContext('2d');
@@ -20,7 +21,7 @@ const letterColumns = 5;
 var wrongGuessCount = 0;
 var filledInLetters = 0;
 
-const happyWord = guessWords[Math.floor(Math.random()*guessWords.length)];
+var happyWord = guessWords[Math.floor(Math.random()*guessWords.length)];
 
 ctx.font = "20px sans-serif";
 
@@ -107,7 +108,7 @@ function DrawBlanks()
 function DoGuess()
 {
     var letter = document.getElementById('Guess').value;
-    var message;
+    var message = "";
 
     if(letter.toUpperCase() >= 'A' && letter.toUpperCase() <= 'Z')
     {
@@ -119,6 +120,7 @@ function DoGuess()
         else
         {
             message += "\n You did not guess a correct letter, try again!";
+            wrongGuessCount++;
         }
         letterGuessArray.push(letter.toUpperCase());
     }
@@ -126,7 +128,6 @@ function DoGuess()
     {
         message = "Please enter a letter (a-z) not " + letter;
     }
-
     alert(message);
 
     RedrawBoard(letter.toUpperCase(), wrongGuessCount);
@@ -206,7 +207,6 @@ function DrawHangMan(wrongGuessCount)
         DrawHangManRightArm();
         DrawHangManLeftLeg();
         DrawHangManRightLeg();
-        alert("Sorry, you did not win...");
     }
 }
 
@@ -230,6 +230,7 @@ function DrawHangManLeftArm()
     ctx.beginPath();
     ctx.moveTo(130,160);
     ctx.lineTo(150,160);
+    ctx.stroke();
 }
 
 function DrawHangManRightArm()
@@ -355,23 +356,19 @@ function DrawBlanksAndCorrectLettersGuessed(letter)
     {
             CheckPositionAndLetter(letterGuessArray[i], xColumnSpot, yColumnSpot);
     }
-    if(letterGuessArray.includes(letter))
+    let letterOccurences = countOccurences(correctLetterArray, letter);
+    for(let j = 0; j < letterOccurences; j++)
     {
-        for(let m = 0; m < letterGuessArray.length; m++)
-        {
-            if(letterGuessArray[m] == letter.toUpperCase())
-            {
-                filledInLetters++;
-                console.log(filledInLetters);
-            }
-        }
+        blankFilledArray.push(letter);
     }
+
 }
 
 function CheckPositionAndLetter(letter, xPosition, yPosition)
 {
     let amountOfLetters = happyWord.length;
     let amountOfGuesses = letterGuessArray.length;
+    let reducedArray = correctLetterArray;
     
 
     for(let j = 0; j < amountOfLetters; j++)
@@ -386,14 +383,35 @@ function CheckPositionAndLetter(letter, xPosition, yPosition)
 
 function CheckWinCondition()
 {
-    if(filledInLetters == happyWord.length)
+    if(wrongGuessCount == 6)
+    {
+        losingScore++;
+        Process();
+    }
+    else if(blankFilledArray.length == correctLetterArray.length)
     {
         winningScore++;
         Process();
     }
 }
 
+const countOccurences = (arr, val) => arr.reduce((a, v) => (v === val ? a + 1 : a), 0);
+
 Init();
 DisplayLetters();
 DrawBlanks();
 FillCorrectLetterArray();
+
+function Reset()
+{
+    happyWord = guessWords[Math.floor(Math.random()*guessWords.length)];
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    blankFilledArray = [];
+    letterGuessArray = [];
+    correctLetterArray = [];
+    wrongGuessCount = 0;
+    Init();
+    DisplayLetters();
+    DrawBlanks();
+    FillCorrectLetterArray();
+}
